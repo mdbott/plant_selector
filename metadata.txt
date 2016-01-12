@@ -1,0 +1,39 @@
+# This file contains metadata for your plugin. Since 
+# version 2.0 of QGIS this is the proper way to supply 
+# information about a plugin. The old method of 
+# embedding metadata in __init__.py will 
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=Plant Selector
+qgisMinimumVersion=2.0
+description=The Plant Selector plugin queries the database to list plants matching the selected map location
+version=0.1
+author=Max Bott
+email=max.d.bott@gmail.com
+
+about=The Plant Selector plugin queries the database to list plants matching the selected map location. It initially requires a selection of the plant category and then for the selected location it queries the follow postgis map layers -Soil -Moisture -Light Level And using the values from this query it builds a list of plant species of the selected type that conforms to the local conditions
+
+tracker=https://github.com/mdbott/plant_selector/issues
+repository=https://github.com/mdbott/plant_selector
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+# Tags are comma separated with spaces allowed
+tags=postgis, landscape, ecology, analysis
+
+homepage=https://github.com/mdbott/plant_selector
+category=Plugins
+icon=icon.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+

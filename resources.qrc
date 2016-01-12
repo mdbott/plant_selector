@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/PlantSelector" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
