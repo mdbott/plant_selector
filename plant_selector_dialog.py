@@ -39,3 +39,9 @@ class PlantSelectorDialog(QtGui.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
+
+    def setTextBrowser(self, output):
+        self.txtFeedback.setText(output)
+
+    def clearTextBrowser(self):
+        self.txtFeedback.clear()

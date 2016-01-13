@@ -20,8 +20,10 @@
  *                                                                         *
  ***************************************************************************/
 """
-from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
+from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, QObject, SIGNAL
 from PyQt4.QtGui import QAction, QIcon
+from qgis.core import *
+from qgis.gui import QgsMapToolEmitPoint
 # Initialize Qt resources from file resources.py
 import resources
 # Import the code for the dialog
@@ -60,6 +62,8 @@ class PlantSelector:
 
         # Create the dialog (after translation) and keep reference
         self.dlg = PlantSelectorDialog()
+        # reference to map canvas
+        self.canvas = self.iface.mapCanvas()
 
         # Declare instance attributes
         self.actions = []
@@ -67,6 +71,18 @@ class PlantSelector:
         # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'PlantSelector')
         self.toolbar.setObjectName(u'PlantSelector')
+        # the identify tool will emit a QgsPoint on every click
+        self.clickTool = QgsMapToolEmitPoint(self.canvas)
+        # create a list to hold our selected feature ids
+        self.selectList = []
+        # current layer ref (set in handleLayerChange)
+        self.cLayer = None
+        # current layer dataProvider ref (set in handleLayerChange)
+        self.provider = None
+
+
+
+
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -161,11 +177,18 @@ class PlantSelector:
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
         icon_path = ':/plugins/PlantSelector/icon.png'
-        self.add_action(
+        self.action = self.add_action(
             icon_path,
             text=self.tr(u'Plant Selector'),
             callback=self.run,
             parent=self.iface.mainWindow())
+        QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+
+        # connect to the currentLayerChanged signal of QgsInterface
+        result = QObject.connect(self.iface, SIGNAL("currentLayerChanged(QgsMapLayer *)"), self.handleLayerChange)
+
+        # connect to the selectFeature custom function to the map canvas click event
+        QObject.connect(self.clickTool, SIGNAL("canvasClicked(const QgsPoint &, Qt::MouseButton)"), self.selectFeature)
 
 
     def unload(self):
@@ -178,9 +201,61 @@ class PlantSelector:
         # remove the toolbar
         del self.toolbar
 
+    def handleMouseDown(self, point, button):
+        self.dlg.clearTextBrowser()
+        self.dlg.setTextBrowser( str(point.x()) + " , " +str(point.y()) )
+
+    def handleLayerChange(self, layer):
+        self.cLayer = self.canvas.currentLayer()
+        if self.cLayer:
+            self.provider = self.cLayer.dataProvider()
+
+
+    def updateTextBrowser(self):
+        # check to make sure we have a feature selected in our selectList -- note that there might be more than one feature
+        if self.selectList:
+
+            # ############ EXAMPLE 1 EDITS GO HERE ####################
+            ''' write code that will output ALL selected feature attributes for a single feature into the Text Browser'''
+            ''' instead of using the dataProvider.select() function get the actual QgsFeature using dataProvider.featureAtId() '''
+            # get the feature by passing in empty Feature
+            request = QgsFeatureRequest(self.selectList[0])
+            for f in self.cLayer.getFeatures(request):
+                output = "FEATURE ID: %i\n\t %s " % (f['id'],f['pH'])
+
+                self.dlg.setTextBrowser(output)
+
+
+    def selectFeature(self, point, button):
+        # reset selection list on each new selection
+        self.selectList = []
+        pntGeom = QgsGeometry.fromPoint(point)
+        pntBuff = pntGeom.buffer((self.canvas.mapUnitsPerPixel() * 2), 0)
+        rect = pntBuff.boundingBox()
+        if self.cLayer:
+            rq = QgsFeatureRequest(rect)
+            for feat in self.cLayer.getFeatures(rq):
+                if feat.geometry().intersects(pntBuff):
+                    self.selectList.append(feat.id())
+            self.cLayer.setSelectedFeatures(self.selectList)
+            if self.selectList:
+                # make the actual selection
+                self.cLayer.setSelectedFeatures([self.selectList[0]])
+                # update the TextBrowser
+                self.updateTextBrowser()
+        else:
+                QMessageBox.information( self.iface.mainWindow(),"Info", "No layer currently selected in TOC" )
+
 
     def run(self):
         """Run method that performs all the real work"""
+        # set the current layer immediately if it exists, otherwise it will be set on user selection
+        self.cLayer = self.iface.mapCanvas().currentLayer()
+        #self.cLayer = QgsMapLayerRegistry.instance().mapLayer('pH')
+        if self.cLayer: self.provider = self.cLayer.dataProvider()
+
+        # make identify the tool we'll use 
+        self.canvas.setMapTool(self.clickTool) 
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
