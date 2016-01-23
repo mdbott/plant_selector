@@ -29,15 +29,54 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QTextBrowser" name="txtFeedback">
+  <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>20</y>
-     <width>441</width>
+     <x>12</x>
+     <y>19</y>
+     <width>451</width>
      <height>441</height>
     </rect>
    </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="tab">
+    <attribute name="title">
+     <string>Local Conditions</string>
+    </attribute>
+    <widget class="QTextBrowser" name="txtFeedback">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>30</y>
+       <width>441</width>
+       <height>381</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="Table">
+    <attribute name="title">
+     <string>Suitable Plants</string>
+    </attribute>
+    <widget class="QTableWidget" name="tblPlants">
+     <property name="geometry">
+      <rect>
+       <x>15</x>
+       <y>21</y>
+       <width>421</width>
+       <height>371</height>
+      </rect>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>421</width>
+       <height>16777215</height>
+      </size>
+     </property>
+    </widget>
+   </widget>
   </widget>
  </widget>
  <resources/>
